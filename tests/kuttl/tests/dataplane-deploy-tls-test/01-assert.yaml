@@ -1,0 +1,221 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cert-cert-custom-service1-edpm-compute-0
+  type: kubernetes.io/tls
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cert-cert-custom-service2-edpm-compute-0
+  type: kubernetes.io/tls
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: openstack-edpm-tls-custom-service1-certs
+  type: Opaque
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: openstack-edpm-tls-custom-service2-certs
+  type: Opaque
+---
+apiVersion: ansibleee.openstack.org/v1beta1
+kind: OpenStackAnsibleEE
+metadata:
+  name: install-certs-override-edpm-compute-tls-services-override
+  namespace: openstack
+  ownerReferences:
+  - apiVersion: dataplane.openstack.org/v1beta1
+    blockOwnerDeletion: true
+    controller: true
+    kind: OpenStackDataPlaneDeployment
+    name: edpm-compute-tls-services-override
+spec:
+  backoffLimit: 6
+  extraMounts:
+  - mounts:
+    - mountPath: /runner/env/ssh_key
+      name: ssh-key
+      subPath: ssh_key
+    - mountPath: /runner/inventory/hosts
+      name: inventory
+      subPath: inventory
+    - mountPath: /var/lib/openstack/certs/custom-service1
+      name: openstack-edpm-tls-custom-service1-certs
+    - mountPath: /var/lib/openstack/cacerts/custom-service1
+      name: custom-service1-combined-ca-bundle
+    - mountPath: /var/lib/openstack/certs/custom-service2
+      name: openstack-edpm-tls-custom-service2-certs
+    - mountPath: /var/lib/openstack/cacerts/custom-service2
+      name: custom-service2-combined-ca-bundle
+    volumes:
+    - name: ssh-key
+      secret:
+        items:
+        - key: ssh-privatekey
+          path: ssh_key
+        secretName: dataplane-ansible-ssh-private-key-secret
+    - name: inventory
+      secret:
+        items:
+        - key: inventory
+          path: inventory
+        secretName: dataplanenodeset-edpm-compute-tls
+    - name: openstack-edpm-tls-custom-service1-certs
+      secret:
+        secretName: openstack-edpm-tls-custom-service1-certs
+    - name: custom-service1-combined-ca-bundle
+      secret:
+        secretName: combined-ca-bundle
+    - name: openstack-edpm-tls-custom-service2-certs
+      secret:
+        secretName: openstack-edpm-tls-custom-service2-certs
+    - name: custom-service2-combined-ca-bundle
+      secret:
+        secretName: combined-ca-bundle
+  name: openstackansibleee
+  restartPolicy: Never
+  playbook: osp.edpm.install_certs
+  uid: 1001
+status:
+  JobStatus: Succeeded
+  conditions:
+  - message: AnsibleExecutionJob complete
+    reason: Ready
+    status: "True"
+    type: Ready
+  - message: AnsibleExecutionJob complete
+    reason: Ready
+    status: "True"
+    type: AnsibleExecutionJobReady
+---
+apiVersion: ansibleee.openstack.org/v1alpha1
+kind: OpenStackAnsibleEE
+metadata:
+  generation: 1
+  name: custom-service1-edpm-compute-tls-services-override
+  namespace: openstack
+  ownerReferences:
+  - apiVersion: dataplane.openstack.org/v1beta1
+    blockOwnerDeletion: true
+    controller: true
+    kind: OpenStackDataPlaneDeployment
+    name: edpm-compute-tls-services-override
+spec:
+  backoffLimit: 6
+  debug: false
+  env:
+  - name: ANSIBLE_FORCE_COLOR
+    value: "True"
+  envConfigMapName: openstack-aee-default-env
+  extraMounts:
+  - mounts:
+    - mountPath: /runner/env/ssh_key
+      name: ssh-key
+      subPath: ssh_key
+    - mountPath: /runner/inventory/hosts
+      name: inventory
+      subPath: inventory
+    volumes:
+    - name: ssh-key
+      secret:
+        items:
+        - key: ssh-privatekey
+          path: ssh_key
+        secretName: dataplane-ansible-ssh-private-key-secret
+    - name: inventory
+      secret:
+        items:
+        - key: inventory
+          path: inventory
+        secretName: dataplanenodeset-edpm-compute-tls
+  name: openstackansibleee
+  play: |
+    - hosts: localhost
+      gather_facts: no
+      name: kuttl play
+      tasks:
+        - name: Sleep
+          command: sleep 1
+          delegate_to: localhost
+  preserveJobs: true
+  restartPolicy: Never
+  uid: 1001
+status:
+  JobStatus: Succeeded
+  conditions:
+  - message: AnsibleExecutionJob complete
+    reason: Ready
+    status: "True"
+    type: Ready
+  - message: AnsibleExecutionJob complete
+    reason: Ready
+    status: "True"
+    type: AnsibleExecutionJobReady
+---
+apiVersion: ansibleee.openstack.org/v1alpha1
+kind: OpenStackAnsibleEE
+metadata:
+  generation: 1
+  name: custom-service2-edpm-compute-tls-services-override
+  namespace: openstack
+  ownerReferences:
+  - apiVersion: dataplane.openstack.org/v1beta1
+    blockOwnerDeletion: true
+    controller: true
+    kind: OpenStackDataPlaneDeployment
+    name: edpm-compute-tls-services-override
+spec:
+  backoffLimit: 6
+  debug: false
+  env:
+  - name: ANSIBLE_FORCE_COLOR
+    value: "True"
+  envConfigMapName: openstack-aee-default-env
+  extraMounts:
+  - mounts:
+    - mountPath: /runner/env/ssh_key
+      name: ssh-key
+      subPath: ssh_key
+    - mountPath: /runner/inventory/hosts
+      name: inventory
+      subPath: inventory
+    volumes:
+    - name: ssh-key
+      secret:
+        items:
+        - key: ssh-privatekey
+          path: ssh_key
+        secretName: dataplane-ansible-ssh-private-key-secret
+    - name: inventory
+      secret:
+        items:
+        - key: inventory
+          path: inventory
+        secretName: dataplanenodeset-edpm-compute-tls
+  name: openstackansibleee
+  play: |
+    - hosts: localhost
+      gather_facts: no
+      name: kuttl play
+      tasks:
+        - name: Sleep
+          command: sleep 1
+          delegate_to: localhost
+  preserveJobs: true
+  restartPolicy: Never
+  uid: 1001
+status:
+  JobStatus: Succeeded
+  conditions:
+  - message: AnsibleExecutionJob complete
+    reason: Ready
+    status: "True"
+    type: Ready
+  - message: AnsibleExecutionJob complete
+    reason: Ready
+    status: "True"
+    type: AnsibleExecutionJobReady

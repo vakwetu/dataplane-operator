@@ -1,0 +1,70 @@
+---
+apiVersion: dataplane.openstack.org/v1beta1
+kind: OpenStackDataPlaneService
+metadata:
+  name: custom-service1
+spec:
+  label: custom-service1
+  caCerts: combined-ca-bundle
+  tlsCert:
+    contents:
+    - dnsnames
+    - ips
+    issuer: osp-rootca-issuer-internal
+    networks:
+    - CtlPlane
+  play: |
+    - hosts: localhost
+      gather_facts: no
+      name: kuttl play
+      tasks:
+        - name: Sleep
+          command: sleep 1
+          delegate_to: localhost
+---
+apiVersion: dataplane.openstack.org/v1beta1
+kind: OpenStackDataPlaneService
+metadata:
+  name: custom-service2
+spec:
+  label: custom-service2
+  caCerts: combined-ca-bundle
+  tlsCert:
+    contents:
+    - dnsnames
+  play: |
+    - hosts: localhost
+      gather_facts: no
+      name: kuttl play
+      tasks:
+        - name: Sleep
+          command: sleep 1
+          delegate_to: localhost
+---
+apiVersion: dataplane.openstack.org/v1beta1
+kind: OpenStackDataPlaneService
+metadata:
+  name: install-certs-override
+spec:
+  label: install-certs-override
+  addCertMounts: True
+  play: |
+    - hosts: localhost
+      gather_facts: no
+      name: kuttl play
+      tasks:
+        - name: Sleep
+          command: sleep 1
+          delegate_to: localhost
+---
+apiVersion: dataplane.openstack.org/v1beta1
+kind: OpenStackDataPlaneDeployment
+metadata:
+  name: edpm-compute-tls-services-override
+spec:
+  nodeSets:
+    - edpm-compute-tls
+  servicesOverride:
+    - install-certs-override
+    - custom-service1
+    - custom-service2
